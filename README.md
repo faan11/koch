@@ -1,5 +1,8 @@
 # koch
 
+<p align="center">
+    <img width="200" src="https://raw.githubusercontent.com/faan11/koch/master/images/logo.webp" alt="Koch logo">
+</p>
 Koch manages oc cluster configurations and allows cli authentication through the usage of Auth server and API k8s server.  
 Koch automates the cluster login process by calling a proxy public api. 
 Koch can request temporary credentials to login through terminal without the usage of browser and service account.  

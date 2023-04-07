@@ -54,7 +54,7 @@ koch define <context-name> --auth="$AUTH_SERVER" --api="$API_SERVER" --context="
 ```
 where context-name represents the cluster configuration name.  
 **$AUTH\_SERVER** represents the scheme and the host used to point out the authentication server ( for instance https://myauthservice.com ).  
-**$API\_SERVER** is the scheme and the host of api server used to perform login (for instance, https://apiserver:6443 )
+**$API\_SERVER** is the scheme and the host of api server used to perform login (for instance, https://apiserver:6443 ).
 
 Once the configuration is defined, the user can perform authentication by using the context name.
 ```

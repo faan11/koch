@@ -1,9 +1,9 @@
 # koch
 
-Koch manages oc cluster configurations and allows cli authentication through the usage of Auth server and API k8s server.
+Koch manages oc cluster configurations and allows cli authentication through the usage of Auth server and API k8s server.  
 Koch automates the cluster login process by calling a proxy public api. 
-Koch can request temporary credentials to login through terminal without the usage of browser and service account.
-Koch has been tested against Openshift® v3.x and 4.x.
+Koch can request temporary credentials to login through terminal without the usage of browser and service account.  
+Koch has been tested against Openshift® v3.x and 4.x.  
 Koch is a lightweight bash script. This script has been tested with Nixos (22.11). Compatibility with other operating system should not be an issue whether requirements are installed in the system. You can create a pull request or an issue whether is not working with your operating system. 
 
 # Requirements

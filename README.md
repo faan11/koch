@@ -16,8 +16,8 @@ Koch is a minimal sh script that works around **oc** tool, that is:
 - **Easy:** quick to install – start using it in minutes.
 
 Authentication can be achieved through:
-- **prompt:** the CLI requests user and password data
-- **bitwarden:** the bitwarden client by looking at user and password in a strongbox entry.
+- **Prompt:** the CLI requests user and password data
+- **Bitwarden:** the bitwarden client by looking at user and password in a strongbox entry.
 
 ## Installation
 

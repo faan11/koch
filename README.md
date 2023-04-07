@@ -6,7 +6,7 @@
 
 # What is Koch 
 
-Koch is a minimal sh script that works around oc, that is:
+Koch is a minimal sh script that works around **oc** tool, that is:
 
 - **Fast:** one login and you are ready to go,
 - **Simple:** based on lightweight commands such as curl and yq,

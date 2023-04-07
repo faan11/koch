@@ -1,0 +1,337 @@
+#!/bin/sh
+
+# 
+# Author: Fabio Pagnotta <fabiopagnotta.92@gmail.com> 
+#
+VERSION=1.0.0-beta
+
+
+# fail script when one of the command fails.
+set -Eeuo pipefail # see https://stackoverflow.com/a/72103511 
+
+#
+# Core logic 
+#
+
+function gettoken {
+	# get token.
+	local host="$1"
+	local user="$2"
+	local pass="$3"
+	local insecure="$4"
+	local add_comm=""
+	# see http://www.freekb.net/Article?id=3402
+	# todo improve fail scenario.
+	#
+	# openshift 3 -> location
+	# openshift 4 -> Location
+	#
+	if [ "$insecure" == "true" ]; then
+		add_comm=" --insecure "
+	else
+		add_comm=" --no-insecure "
+	fi
+	curl -s --fail $add_comm --request GET  -u "$user:$pass" --header "X-CSRF-Token: xxx" --url "$host/oauth/authorize?response_type=token&client_id=openshift-challenging-client" --head | grep -i Location | grep -o -P '(?<=implicit#access_token=).*(?=&expires_in)' 
+}
+
+function login {
+	# Login using credentials
+	# $1 -> auth host
+	# $2 -> api server 
+	# $3 -> user
+	# $4 -> pass
+	# $5 -> insecure (false,true)
+	local temp_token=$(gettoken $1 $3 $4 $5)
+	local api_access="$2"
+	loginwtoken "$api_access" "$temp_token" "$5"	
+}
+
+function loginwtoken {
+	# Login using openshift token
+	# $1 -> api server 
+	# $2 -> token api
+	# $3 -> insecure
+	oc login --token="$2" --server="$1" --insecure-skip-tls-verify="$3"
+        echo "Temp Token: $2"	
+}
+
+function getprofilelist_action {
+	# $1 -> file name
+ 	profiles=$(yq -r '.profiles | keys' $1)	
+	echo "$profiles"
+}
+
+function delete_action {
+	# Check if profile exists
+	ex=$(yq -r ".profiles | has(\"$2\") " $1)
+	if [ "${ex}" == "false" ]; then
+		echo "Profile not found" 
+		exit 6;
+	fi
+	# Delete profile
+	yq -i -r "del(.profiles.$2)" $1
+}
+
+function islogged {
+	# $1 - context name
+	#
+	# Probe whether pods exists.
+	#
+	set +Eeuo pipefail # see https://stackoverflow.com/a/72103511 
+	contextres=$(oc config get-contexts "$context" > /dev/null 2>&1)
+	res=$?
+	if [ "$res" -ne 0 ]; then
+		echo "notexist" # context invalid
+	fi
+	# TODO this can be improved by using curl and get token from oc but it's fine.
+	pods=$(oc get pods --context "$1" > /dev/null 2>&1)
+	res=$?
+	if [ "$res" -eq 0 ]; then
+		echo "true" # Valid token
+	else
+		echo "false" # Invalid token
+	fi
+	set -Eeuo pipefail # see https://stackoverflow.com/a/72103511 
+}
+
+function login_action {
+	# $1 -> file name
+	# $2 -> profile used
+	ex=$(yq -r ".profiles | has(\"$2\") " $1)	
+ 	oauth=$(yq -r ".profiles.$2.oauth" $1)	
+ 	api=$(yq -r ".profiles.$2.api" $1)	
+ 	context=$(yq -r ".profiles.$2.context" $1)
+ 	insecure=$(yq -r ".profiles.$2.insecure" $1)
+
+ 	secrethandler=$(yq -r ".profiles.$2.secrethandler" $1)	
+ 	secrethandlername=$(yq -r ".profiles.$2.secrethandlername" $1)	
+	#echo "Ex: $ex, Auth: $oauth, api: $api, secrethandler: $secrethandler, secrethandlername: $secrethandlername"
+	user=""
+	pass=""
+	if [ "${ex}" == "false" ]; then
+		echo "Profile not found" 
+		exit 6;
+	fi
+	
+	# This phase checks whether the context exists and the token is valid or not.
+	log=$(islogged "$context")
+
+	if [ "${log}" == "true" ]; then
+		echo "Context is already valid"
+		exit 13;	
+	fi
+	if [ "$secrethandler" == "default" ]; then
+		read -p "Insert username: " user 
+		read -s -p "Insert password: " pass
+	elif [ "$secrethandler" == "bitwarden" ]; then
+		if ! command -v bw &> /dev/null
+		then
+			echo "bw command could not be found"
+			exit 10
+		fi
+		set +Eeuo pipefail # see https://stackoverflow.com/a/72103511 
+		item=$(bw get item "$secrethandlername")
+		res=$?
+		set -Eeuo pipefail # see https://stackoverflow.com/a/72103511 
+		if [ "$res" -ne 0 ]; then
+			echo "bitwarden cannot find the secret $secrethandlername"
+			echo "log: $item"
+			exit 11
+		fi
+		user=$(echo $item | jq -r '.login.username')
+		pass=$(echo $item | jq -r '.login.password')
+	else
+		echo "Secret method $secrethandler not found"
+		exit 12
+	fi
+	
+	#
+	# Performing authentication
+	#
+	login "$oauth" "$api" "$user" "$pass" "$insecure"
+	
+	#
+	# Settings context.
+	#
+	if [ "${log}" == "true" ] || [ "${log}" == "false" ]; then
+		# means it exists, so we remove the old context
+		echo "Removing old context:$log"
+		oc config delete-context "$context"
+	fi
+	echo "Create new context"
+	oc config rename-context `oc config current-context` "$context"	
+	echo "Done."
+}
+
+function defprofile_action {
+	# $1 -> file name 
+	if [[ "${4}" != http* ]]; then
+		echo "Api server does not start with http: $4" 
+		exit 6;
+	fi	
+	if [[ "${3}" != http* ]]; then
+		echo "Oauth server does not start with http" 
+		exit 6;
+	fi	
+	yq -i "setpath([\"profiles\",\"$2\"]; {\"oauth\":\"$3\",\"api\":\"$4\",\"secrethandler\":\"$5\",\"secrethandlername\":\"$6\",\"context\":\"$7\",\"insecure\":\"$8\"})" $1  
+	#yq ".profiles.$2 + {\"\": \"meow\"}" $1
+}
+
+
+function kinit {
+	[ -d koch ] && mkdir $HOME/.koch
+	touch $HOME/.koch/koch.yaml
+}
+
+# Set some default values:
+# https://www.shellscript.sh/examples/getopt/
+#
+
+koch_config=$HOME/.koch/koch.yaml
+
+if ! command -v jq &> /dev/null
+then
+	echo "jq is required and is not installed."
+	exit 11
+fi
+
+#if ! command -v bw &> /dev/null
+#then
+#	echo "bw is required and is not installed."
+#	exit 11
+#fi
+
+if ! command -v yq &> /dev/null
+then
+	echo "yq is required and is not installed."
+	exit 11
+fi
+
+if ! command -v oc &> /dev/null
+then
+	echo "oc  is required and is not installed."
+	exit 11
+fi
+
+if ! command -v curl &> /dev/null
+then
+	echo "curl is required and is not installed."
+	exit 11
+fi
+
+usage()
+{
+	echo "Koch manages your cluster authentications and automates oc authentication."
+	echo "This program can request temporary token authentication on the fly without creating service accounts."
+	echo "Koch uses the oc client and curl to perform authentication through a proxy endpoint."
+	echo 
+	echo "Commands:"
+	echo "version	Returns the program version"
+	echo "config	Prints cluster configurations"
+	echo "login 	Performs the login phase with the auth server and authenticates with the api server"
+	echo "logout 	Performs the logout phase" 
+	echo "list	List cluster configurations "
+	echo "define	Defines cluster configuration "
+	echo "delete	Delete cluster configuration "
+	echo 
+	echo "Examples:"
+	echo "$0 login <context-name>"
+	echo "$0 logout"
+	echo "$0 list"
+	echo "$0 config"
+	echo "$0 define <context-name> --auth=\"\$AUTH_SERVER\" --api=\"\$API_SERVER\" --context=\"\$KUBECTL_CONTEXT\" --secrethandler=\"\$SECRETHANDLER\" --secretname=\"\$SECRETNAME\" --insecure=\"true\""
+	echo "$0 delete <context-name> "
+	echo "\$SECRETHANDLER can be "bitwarden" (bitwarden auth using bw) or "default" profile (that requests username and password by prompt)."
+	echo 
+	echo "Contexts are saved in $HOME/.koch/koch.yaml"
+	exit 20;
+}
+
+if [ "$#" -le 0 ]; then
+	usage;
+fi
+# Action tool 
+action="$1"
+
+if [ "$action" == "" ]; then
+	usage;
+fi
+# Kocube initialization
+kinit; 
+
+if [ "$action" == "login" ]; then
+	# only login action.
+	if [ "$#" -eq 1 ]; then
+		usage;
+	fi
+	login_action $koch_config $2
+elif [ "$action" == "delete" ]; then
+	# only login action.
+	if [ "$#" -eq 1 ]; then
+		usage;
+	fi
+	delete_action $koch_config $2
+	echo "Profile $2 deleted"
+elif [ "$action" == "config" ]; then
+	# Print config file
+	cat $HOME/.koch/koch.yaml
+elif [ "$action" == "version" ]; then
+	echo "$0 v$VERSION"
+elif [ "$action" == "logout" ]; then
+	# Perform logout 
+	oc logout
+	unset KUBECONFIG
+elif [ "$action" == "list" ]; then
+	# Authenticate the user using profiles defined in yaml file.
+	getprofilelist_action $koch_config
+elif [ "$action" == "define" ]; then
+	# Authenticate the user using profiles defined in yaml file.
+	PARSED_ARGUMENTS=$(getopt -n $0 -o poasci:d: --long profile:,oauth:,api:,secrethandler:,secretname:,context:,insecure: -- "$@")
+	VALID_ARGUMENTS=$?
+	# echo $VALID_ARGUMENTS
+	if [ "$VALID_ARGUMENTS" != "0" ]; then
+		  usage
+	fi
+	
+	host=unset
+	profile=unset
+	api=unset
+	sh=default
+	shn=unset
+	context=unset
+	insecure="false"
+
+	if [ "$#" -eq 1 ]; then
+		usage;
+	fi
+	profile="$2"
+
+	eval set -- "$PARSED_ARGUMENTS"
+	while :
+	do
+	  case "$1" in
+		      -o | --oauth)   	       host="$2" ; shift 2 ;;
+		      -a | --api)     	       api="$2"   ; shift 2 ;;
+		      -s | --secrethandler)    sh="$2"   ; shift 2 ;;
+		      -n | --secretname)       shn="$2"   ; shift 2 ;;
+		      -c | --context)          context="$2"   ; shift 2 ;;
+		      -i | --insecure)         insecure="true"   ; shift 2 ;;
+		      --) shift; break ;;
+		      *) echo "Unexpected option: $1 - this should not happen."
+				     usage ;;
+	 esac
+	done
+
+	if [ "${profile}" == "unset" ] || [ "${host}" == "unset" ] || [ "${context}" == "unset" ]  || [ "${api}" == "unset" ]; then
+	 	usage
+		exit 5;
+	fi
+
+	defprofile_action "$koch_config" "$profile" "$host" "$api" "$sh" "$shn" "$context" "$insecure"
+	echo "Profile $profile added"
+	echo "You can use it by executing $0 login $profile"
+else
+	usage;
+fi
+
+

@@ -1,15 +1,24 @@
-# koch
 
 <p align="center">
-    <img width="200" src="https://raw.githubusercontent.com/faan11/koch/master/images/logo.webp" alt="Koch logo">
+    <img width="400" src="https://raw.githubusercontent.com/faan11/koch/master/images/logo.webp" alt="Koch logo">
 </p>
-Koch manages oc cluster configurations and allows cli authentication through the usage of Auth server and API k8s server.  
-Koch automates the cluster login process by calling a proxy public api. 
-Koch can request temporary credentials to login through terminal without the usage of browser and service account.  
-Koch has been tested against Openshift® v3.x and 4.x.  
-Koch is a lightweight bash script. This script has been tested with Nixos (22.11). Compatibility with other operating system should not be an issue whether requirements are installed in the system. You can create a pull request or an issue whether is not working with your operating system. 
 
-# Requirements
+<h1></h1>
+
+# What is koch 
+
+The minimal bash script that works around oc, that is:
+
+- **Fast:** one login and you are ready to go,
+- **Simple:** based on lightweight commands such as curl and yq,
+- **Secure:** Koch creates temporary token using cli and you don't need service account, 
+- **Configurable:** all clusters are defined in a yaml file similar to other tools,
+- **Supported:** Koch supports Openshift® v3.x and 4.x
+- **Easy:** quick to install – start using it in minutes.
+
+# Installation
+
+## Prerequisites
 - sh, used to execute the script.
 - [yq](https://github.com/mikefarah/yq), used to manage yaml configuration (tested with v4.33.0)
 - [curl](https://github.com/curl/curl), used to request temporary authentication token
@@ -17,13 +26,13 @@ Koch is a lightweight bash script. This script has been tested with Nixos (22.11
 - [bw](https://github.com/bitwarden/clients)  (bitwarden-cli, optional), used to request credentials
 - [jq](https://github.com/stedolan/jq) (optional), used to parse credentials json 
 
-# Recommended software
+## Recommended software
 - [starship](https://github.com/starship/starship), used to know the current kubectl context 
 - [kubectx](https://github.com/ahmetb/kubectx), to change between kubectl context
 - [kubens](https://github.com/ahmetb/kubectx), to change the current namespace
 - [fzf](https://github.com/junegunn/fzf) , to properly select the kubernetes context and namespace
 
-# Download and install
+## Download and install
 This script downloads and install the koch script in the bin directory of the user. You can also install system-wide.
 ```
 curl -o koch 

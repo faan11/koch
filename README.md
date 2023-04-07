@@ -3,22 +3,21 @@
     <img width="400" src="https://raw.githubusercontent.com/faan11/koch/master/images/logo.webp" alt="Koch logo">
 </p>
 
-<h1></h1>
 
-# What is koch 
+# What is Koch 
 
-The minimal bash script that works around oc, that is:
+Koch is a minimal sh script that works around oc, that is:
 
 - **Fast:** one login and you are ready to go,
 - **Simple:** based on lightweight commands such as curl and yq,
-- **Secure:** Koch creates temporary token using cli and you don't need service account, 
+- **Secure:** Koch creates temporary token using cli and you don't need anymore service account and the web console to login!, 
 - **Configurable:** all clusters are defined in a yaml file similar to other tools,
 - **Supported:** Koch supports Openshift® v3.x and 4.x
 - **Easy:** quick to install – start using it in minutes.
 
-# Installation
+## Installation
 
-## Prerequisites
+### Prerequisites
 - sh, used to execute the script.
 - [yq](https://github.com/mikefarah/yq), used to manage yaml configuration (tested with v4.33.0)
 - [curl](https://github.com/curl/curl), used to request temporary authentication token
@@ -26,20 +25,20 @@ The minimal bash script that works around oc, that is:
 - [bw](https://github.com/bitwarden/clients)  (bitwarden-cli, optional), used to request credentials
 - [jq](https://github.com/stedolan/jq) (optional), used to parse credentials json 
 
-## Recommended software
+### Recommended software
 - [starship](https://github.com/starship/starship), used to know the current kubectl context 
 - [kubectx](https://github.com/ahmetb/kubectx), to change between kubectl context
 - [kubens](https://github.com/ahmetb/kubectx), to change the current namespace
 - [fzf](https://github.com/junegunn/fzf) , to properly select the kubernetes context and namespace
 
-## Download and install
+### Download and install
 This script downloads and install the koch script in the bin directory of the user. You can also install system-wide.
 ```
 curl -o koch 
 mv koch $HOME/.local/bin/
 chmod +x $HOME/.local/bin/koch
 ```
-# Usage
+## Usage
 You can get the help command by simply typing
 ```
 koch
@@ -63,8 +62,8 @@ koch logout
 ```
 Koch logout performs the logout operation.
 
-# How to contribute
+## How to contribute
 Feel free to open an issue in the repo and proposes new ideas.
  
-# Contributors
+## Contributors
 - Fabio Pagnotta <fabio.pagnotta@kiratech.it>

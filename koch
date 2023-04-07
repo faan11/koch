@@ -3,8 +3,7 @@
 # 
 # Author: Fabio Pagnotta <fabiopagnotta.92@gmail.com> 
 #
-VERSION=1.0.0-beta
-
+VERSION=1.0.0
 
 # fail script when one of the command fails.
 set -Eeuo pipefail # see https://stackoverflow.com/a/72103511 

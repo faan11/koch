@@ -52,9 +52,9 @@ The following command defines a cluster configuration.
 ```
 koch define <context-name> --auth="$AUTH_SERVER" --api="$API_SERVER" --context="$KUBECTL_CONTEXT" --secrethandler="$SECRETHANDLER" --secretname="$SECRETNAME" --insecure="true"
 ```
-where context-name represents the cluster configuration name.
-$AUTH\_SERVER represents the host and the scheme used to point out the authentication server ( for instance https://myauthservice.com )
-$API\_SERVER is the scheme and the host of api server used to perform login (for instance, https://apiserver:6443 )
+where context-name represents the cluster configuration name.  
+**$AUTH\_SERVER** represents the scheme and the host used to point out the authentication server ( for instance https://myauthservice.com ).  
+**$API\_SERVER** is the scheme and the host of api server used to perform login (for instance, https://apiserver:6443 )
 
 Once the configuration is defined, the user can perform authentication by using the context name.
 ```

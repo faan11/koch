@@ -15,6 +15,10 @@ Koch is a minimal sh script that works around **oc** tool, that is:
 - **Supported:** Koch supports Openshift® v3.x and 4.x
 - **Easy:** quick to install – start using it in minutes.
 
+Authentication can be achieved through:
+- **prompt:** the CLI requests user and password data
+- **bitwarden:** the bitwarden client by looking at user and password in a strongbox entry.
+
 ## Installation
 
 ### Prerequisites
@@ -34,7 +38,7 @@ Koch is a minimal sh script that works around **oc** tool, that is:
 ### Download and install
 This script downloads and install the koch script in the bin directory of the user. You can also install system-wide.
 ```
-curl -o koch 
+curl -o koch https://raw.githubusercontent.com/faan11/koch/1.0.0/koch
 mv koch $HOME/.local/bin/
 chmod +x $HOME/.local/bin/koch
 ```

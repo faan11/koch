@@ -14,6 +14,7 @@ Koch is a minimal sh script that works around **oc** tool, that is:
 - **Configurable:** all clusters are defined in a yaml file similar to other tools,
 - **Supported:** Koch supports Openshift® v3.x and 4.x
 - **Easy:** quick to install – start using it in minutes.
+- **Interoperable:** support for Mac and Linux  operating systems
 
 Authentication can be achieved through:
 - **Prompt:** the CLI requests user and password data
@@ -22,7 +23,8 @@ Authentication can be achieved through:
 ## Installation
 
 ### Prerequisites
-- sh, used to execute the script.
+- sh, used to execute the script
+- perl, used to parse the access token in the folder
 - [yq](https://github.com/mikefarah/yq), used to manage yaml configuration (tested with v4.33.0)
 - [curl](https://github.com/curl/curl), used to request temporary authentication token
 - [oc](https://github.com/openshift/oc), used to perform login and logout operation once received the token.
@@ -38,7 +40,7 @@ Authentication can be achieved through:
 ### Download and install
 This script downloads and install the koch script in the bin directory of the user. You can also install system-wide.
 ```
-curl -o koch https://raw.githubusercontent.com/faan11/koch/1.0.0/koch
+curl -o koch https://raw.githubusercontent.com/faan11/koch/1.0.1/koch
 mv koch $HOME/.local/bin/
 chmod +x $HOME/.local/bin/koch
 ```
@@ -70,4 +72,5 @@ Koch logout performs the logout operation.
 Feel free to open an issue in the repo and proposes new ideas.
  
 ## Contributors
-- Fabio Pagnotta <fabio.pagnotta@kiratech.it>
+- Fabio Pagnotta <fabiopagnotta.92@gmail.com>
+- Vladimir Mozharov 

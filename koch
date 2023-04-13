@@ -30,7 +30,7 @@ function gettoken {
 	else
 		add_comm=" --no-insecure "
 	fi
-	curl -s --fail $add_comm --request GET  -u "$user:$pass" --header "X-CSRF-Token: xxx" --url "$host/oauth/authorize?response_type=token&client_id=openshift-challenging-client" --head | grep -i Location | grep -o -P '(?<=implicit#access_token=).*(?=&expires_in)' 
+	curl -s --fail $add_comm --request GET  -u "$user:$pass" --header "X-CSRF-Token: xxx" --url "$host/oauth/authorize?response_type=token&client_id=openshift-challenging-client" --head | grep -i Location | perl -nle'print $& while m{(?<=implicit#access_token=).*(?=&expires_in)}g' 
 }
 
 function login {

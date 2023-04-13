@@ -2,8 +2,8 @@
 
 ## [1.0.1] 
 
-Adds Mac os support
-Fixs: 
+Adds Mac os support  
+### Fixs: 
 - fix: grep -P substitution with perl templating
 
 ## [1.0.0] 

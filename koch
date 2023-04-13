@@ -1,9 +1,11 @@
 #!/bin/sh
 
 # 
-# Author: Fabio Pagnotta <fabiopagnotta.92@gmail.com> 
+# Contributors: 
+# Fabio Pagnotta <fabiopagnotta.92@gmail.com> (author)
+# Vladimir Mozharov
 #
-VERSION=1.0.0
+VERSION=1.0.1
 
 # fail script when one of the command fails.
 set -Eeuo pipefail # see https://stackoverflow.com/a/72103511 

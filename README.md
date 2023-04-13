@@ -24,7 +24,7 @@ Authentication can be achieved through:
 
 ### Prerequisites
 - sh, used to execute the script
-- perl, used to parse the access token in the folder
+- perl, used to parse the access token in the folder (tested with v5.30.3 and v5.36.0)
 - [yq](https://github.com/mikefarah/yq), used to manage yaml configuration (tested with v4.33.0)
 - [curl](https://github.com/curl/curl), used to request temporary authentication token
 - [oc](https://github.com/openshift/oc), used to perform login and logout operation once received the token.

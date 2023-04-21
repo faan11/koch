@@ -119,6 +119,7 @@ function login_action {
 
 	if [ "${log}" == "true" ]; then
 		echo "Context is already valid"
+		oc config use-context "$context"
 		exit 13;	
 	fi
 	if [ "$secrethandler" == "default" ]; then

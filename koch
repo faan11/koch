@@ -131,6 +131,8 @@ function login_action {
 			echo "bw command could not be found"
 			exit 10
 		fi
+		bw sync 1>/dev/null
+		#Bitwarden does not sync in automatic way. We need to pull new db with updated passwords
 		set +Eeuo pipefail # see https://stackoverflow.com/a/72103511 
 		item=$(bw get item "$secrethandlername")
 		res=$?

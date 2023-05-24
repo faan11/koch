@@ -183,7 +183,7 @@ function defprofile_action {
 
 
 function kinit {
-	[ -d koch ] && mkdir $HOME/.koch
+	[ -d $HOME/.koch ] && mkdir $HOME/.koch
 	touch $HOME/.koch/koch.yaml
 }
 

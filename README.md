@@ -68,6 +68,13 @@ koch logout
 ```
 Koch logout performs the logout operation.
 
+### Autocompletion
+Koch supports only bash and zsh shell autocompletion.
+The autocompletion is limited to the login command. It is used to filter koch profiles.
+```
+eval "$(koch completion zsh)"
+eval "$(koch completion bash)"
+```
 ## How to contribute
 Feel free to open an issue in the repo and proposes new ideas.
  

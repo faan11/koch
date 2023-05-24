@@ -40,7 +40,7 @@ Authentication can be achieved through:
 ### Download and install
 This script downloads and install the koch script in the bin directory of the user. You can also install system-wide.
 ```
-curl -o koch https://raw.githubusercontent.com/faan11/koch/1.0.1/koch
+curl -o koch https://raw.githubusercontent.com/faan11/koch/1.1.0/koch
 mv koch $HOME/.local/bin/
 chmod +x $HOME/.local/bin/koch
 ```

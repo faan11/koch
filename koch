@@ -306,8 +306,6 @@ complete -F _dothis_completions $(basename $0)
 EOF
 	elif [ "$2" == "zsh" ]; then
 	cat << EOF 
-#compdef _koch koch
-compdef _koch koch
 
 _koch() { 
 	if [[ \$# -ne 2 ]] && [[ \$# -ne 3 ]]; then
@@ -316,11 +314,13 @@ _koch() {
 	if [ "\$2" != "login" ]; then
 		return;
 	fi
+	local res
 	res=\$(yq -r '.profiles | keys | .[]' $HOME/.koch/koch.yaml )
-	local f=(\$(compgen -W "\$res" -- "\$2"))
-	compadd -a f
+	compadd "\$@" -a res
 }
 
+#compdef _koch $(basename $0)
+compdef _koch $(basename $0)
 EOF
 	else
 		echo "Shell not supported. Zsh and bash are available"

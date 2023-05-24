@@ -230,19 +230,22 @@ usage()
 	echo "Koch uses the oc client and curl to perform authentication through a proxy endpoint."
 	echo 
 	echo "Commands:"
-	echo "version	Returns the program version"
-	echo "config	Prints cluster configurations"
-	echo "login 	Performs the login phase with the auth server and authenticates with the api server"
-	echo "logout 	Performs the logout phase" 
-	echo "list	List cluster configurations "
-	echo "define	Defines cluster configuration "
-	echo "delete	Delete cluster configuration "
+	echo "version		Returns the program version"
+	echo "config		Prints cluster configurations"
+	echo "login 		Performs the login phase with the auth server and authenticates with the api server"
+	echo "logout 		Performs the logout phase" 
+	echo "list		List cluster configurations "
+	echo "define		Defines cluster configuration "
+	echo "delete		Delete cluster configuration "
+	echo "completion	Generate bash and zsh scripts useful for shell completion "
 	echo 
 	echo "Examples:"
 	echo "$0 login <context-name>"
 	echo "$0 logout"
 	echo "$0 list"
 	echo "$0 config"
+	echo "$0 completion bash "
+	echo "$0 completion zsh "
 	echo "$0 define <context-name> --auth=\"\$AUTH_SERVER\" --api=\"\$API_SERVER\" --context=\"\$KUBECTL_CONTEXT\" --secrethandler=\"\$SECRETHANDLER\" --secretname=\"\$SECRETNAME\" --insecure=\"true\""
 	echo "$0 delete <context-name> "
 	echo "\$SECRETHANDLER can be "bitwarden" (bitwarden auth using bw) or "default" profile (that requests username and password by prompt)."
@@ -279,6 +282,50 @@ elif [ "$action" == "delete" ]; then
 elif [ "$action" == "config" ]; then
 	# Print config file
 	cat $HOME/.koch/koch.yaml
+elif [ "$action" == "completion" ]; then
+	if [ "$#" -eq 1 ]; then
+		usage;
+	fi
+	shell=$2
+	if [ "$2" == "bash" ]; then
+	# Shell generate autocomplete script
+	# .[] removes list from yaml 
+	cat << EOF 
+_dothis_completions()
+{
+	if [ "\${#COMP_WORDS[@]}" != "2" ] && [ "\${#COMP_WORDS[@]}" != "3" ]; then
+    		return;
+  	fi
+	if [ "\${COMP_WORDS[1]}" != "login" ]; then
+		return;
+	fi
+	res=\$(yq -r '.profiles | keys | .[]' $HOME/.koch/koch.yaml )
+	COMPREPLY+=(\$(compgen -W "\$res" -- "\${COMP_WORDS[2]}"))
+}
+complete -F _dothis_completions $(basename $0)
+EOF
+	elif [ "$2" == "zsh" ]; then
+	cat << EOF 
+#compdef _koch koch
+compdef _koch koch
+
+_koch() { 
+	if [[ \$# -ne 2 ]] && [[ \$# -ne 3 ]]; then
+    		return;
+  	fi
+	if [ "\$2" != "login" ]; then
+		return;
+	fi
+	res=\$(yq -r '.profiles | keys | .[]' $HOME/.koch/koch.yaml )
+	local f=(\$(compgen -W "\$res" -- "\$2"))
+	compadd -a f
+}
+
+EOF
+	else
+		echo "Shell not supported. Zsh and bash are available"
+		exit 50
+	fi
 elif [ "$action" == "version" ]; then
 	echo "$0 v$VERSION"
 elif [ "$action" == "logout" ]; then

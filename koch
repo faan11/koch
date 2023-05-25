@@ -16,6 +16,10 @@ set -Eeuo pipefail # see https://stackoverflow.com/a/72103511
 
 function gettoken {
 	# get token.
+	if [ $# -ne 4 ]; then
+		echo "Error: Token cannot be retrieved" >&2
+		exit 51
+	fi
 	local host="$1"
 	local user="$2"
 	local pass="$3"
@@ -66,7 +70,7 @@ function delete_action {
 	# Check if profile exists
 	ex=$(yq -r ".profiles | has(\"$2\") " $1)
 	if [ "${ex}" == "false" ]; then
-		echo "Profile not found" 
+		echo "Profile not found" >&2
 		exit 6;
 	fi
 	# Delete profile
@@ -110,7 +114,7 @@ function login_action {
 	user=""
 	pass=""
 	if [ "${ex}" == "false" ]; then
-		echo "Profile not found" 
+		echo "Profile not found" >&2
 		exit 6;
 	fi
 	
@@ -120,7 +124,7 @@ function login_action {
 	if [ "${log}" == "true" ]; then
 		echo "Context is already valid"
 		oc config use-context "$context"
-		exit 13;	
+		exit 0;	
 	fi
 	if [ "$secrethandler" == "default" ]; then
 		read -p "Insert username: " user 
@@ -128,7 +132,7 @@ function login_action {
 	elif [ "$secrethandler" == "bitwarden" ]; then
 		if ! command -v bw &> /dev/null
 		then
-			echo "bw command could not be found"
+			echo "bw command could not be found" >&2
 			exit 10
 		fi
 		bw sync 1>/dev/null
@@ -138,8 +142,8 @@ function login_action {
 		res=$?
 		set -Eeuo pipefail # see https://stackoverflow.com/a/72103511 
 		if [ "$res" -ne 0 ]; then
-			echo "bitwarden cannot find the secret $secrethandlername"
-			echo "log: $item"
+			echo "bitwarden cannot find the secret $secrethandlername" >&2
+			echo "log: $item" >&2
 			exit 11
 		fi
 		user=$(echo $item | jq -r '.login.username')
@@ -167,14 +171,50 @@ function login_action {
 	echo "Done."
 }
 
+function psh_action {
+	# Create a new private shell
+	# $1 -> config filename
+	# $2 -> profile name
+	
+	local kConfigfile
+	local kConfigTempfile
+	if [ -n "${KUBECONFIG+1}" ]; then
+		kConfigFile=$KUBECONFIG
+	fi
+	# Binds temporary kubeconfig
+	export KUBECONFIG=$(mktemp)
+	# Perform login action
+	login_action $1 $2
+	# Disables exit on error
+	set +Eeuo pipefail # see https://stackoverflow.com/a/72103511 
+	echo ""
+	echo "Opening a new private shell"
+	trap "oc logout; rm -rf \"$KUBECONFIG\"; trap - EXIT; exit" INT HUP
+	$SHELL
+	echo "Closing the private shell.."
+	oc logout
+	echo "Recover the previous contexts"
+	# Shell closed, we can proceed
+	# Delete temporary file
+	rm $KUBECONFIG 
+	# Recover the previous KUBECONFIG. 
+	if [ -n "${kConfigFile+1}" ]; then
+		export KUBECONFIG=$kConfigFile
+	else
+		unset $KUBECONFIG
+	fi
+	# Disables exit on error
+	set -Eeuo pipefail # see https://stackoverflow.com/a/72103511 
+}
+
 function defprofile_action {
 	# $1 -> file name 
 	if [[ "${4}" != http* ]]; then
-		echo "Api server does not start with http: $4" 
+		echo "Api server does not start with http: $4" >&2
 		exit 6;
 	fi	
 	if [[ "${3}" != http* ]]; then
-		echo "Oauth server does not start with http" 
+		echo "Oauth server does not start with http" >&2
 		exit 6;
 	fi	
 	yq -i "setpath([\"profiles\",\"$2\"]; {\"oauth\":\"$3\",\"api\":\"$4\",\"secrethandler\":\"$5\",\"secrethandlername\":\"$6\",\"context\":\"$7\",\"insecure\":\"$8\"})" $1  
@@ -195,7 +235,7 @@ koch_config=$HOME/.koch/koch.yaml
 
 if ! command -v jq &> /dev/null
 then
-	echo "jq is required and is not installed."
+	echo "jq is required and is not installed." >&2
 	exit 11
 fi
 
@@ -207,19 +247,19 @@ fi
 
 if ! command -v yq &> /dev/null
 then
-	echo "yq is required and is not installed."
+	echo "yq is required and is not installed." >&2
 	exit 11
 fi
 
 if ! command -v oc &> /dev/null
 then
-	echo "oc  is required and is not installed."
+	echo "oc  is required and is not installed." >&2
 	exit 11
 fi
 
 if ! command -v curl &> /dev/null
 then
-	echo "curl is required and is not installed."
+	echo "curl is required and is not installed." >&2
 	exit 11
 fi
 
@@ -233,6 +273,7 @@ usage()
 	echo "version		Returns the program version"
 	echo "config		Prints cluster configurations"
 	echo "login 		Performs the login phase with the auth server and authenticates with the api server"
+	echo "psh 		Performs login command inside a Private SHell. Once the shell is closed, the context is also removed"
 	echo "logout 		Performs the logout phase" 
 	echo "list		List cluster configurations "
 	echo "define		Defines cluster configuration "
@@ -241,6 +282,7 @@ usage()
 	echo 
 	echo "Examples:"
 	echo "$0 login <context-name>"
+	echo "$0 psh <context-name>"
 	echo "$0 logout"
 	echo "$0 list"
 	echo "$0 config"
@@ -267,22 +309,41 @@ fi
 kinit; 
 
 if [ "$action" == "login" ]; then
-	# only login action.
+	# 
+	# Performs login action.
+	#
 	if [ "$#" -eq 1 ]; then
 		usage;
 	fi
 	login_action $koch_config $2
 elif [ "$action" == "delete" ]; then
-	# only login action.
+	# 
+	# Delete context
+	#
 	if [ "$#" -eq 1 ]; then
 		usage;
 	fi
 	delete_action $koch_config $2
 	echo "Profile $2 deleted"
+elif [ "$action" == "psh" ]; then
+	#
+	# Open a new private shell
+	#
+	if [ "$#" -eq 1 ]; then
+		usage;
+	fi
+	#
+	psh_action $koch_config $2
+	#
 elif [ "$action" == "config" ]; then
+	#
 	# Print config file
+	#
 	cat $HOME/.koch/koch.yaml
 elif [ "$action" == "completion" ]; then
+	# 
+	# Completion shell
+	#
 	if [ "$#" -eq 1 ]; then
 		usage;
 	fi
@@ -296,7 +357,7 @@ _dothis_completions()
 	if [ "\${#COMP_WORDS[@]}" != "2" ] && [ "\${#COMP_WORDS[@]}" != "3" ]; then
     		return;
   	fi
-	if [ "\${COMP_WORDS[1]}" != "login" ]; then
+	if [ "\${COMP_WORDS[1]}" != "login" ] && [ "\${COMP_WORDS[1]}" != "psh" ]; then
 		return;
 	fi
 	res=\$(yq -r '.profiles | keys | .[]' $HOME/.koch/koch.yaml )
@@ -306,16 +367,19 @@ complete -F _dothis_completions $(basename $0)
 EOF
 	elif [ "$2" == "zsh" ]; then
 	cat << EOF 
+_koch() {
+	_arguments \
+	'1: :->command' \
+	'2: :->subcommand'
 
-_koch() { 
-	if [[ \$# -ne 2 ]] && [[ \$# -ne 3 ]]; then
+	if [[ \$#words[@] -ne 2 ]] && [[ \$#words[@] -ne 3 ]]; then
     		return;
   	fi
-	if [ "\$2" != "login" ]; then
+	if [ "\$words[2]" != "login" ] && [ "\$words[2]" != "psh" ]; then
 		return;
 	fi
 	local res
-	res=\$(yq -r '.profiles | keys | .[]' $HOME/.koch/koch.yaml )
+	res=(\$(yq -r '.profiles | keys | .[]' $HOME/.koch/koch.yaml ))
 	compadd "\$@" -a res
 }
 
@@ -323,20 +387,29 @@ _koch() {
 compdef _koch $(basename $0)
 EOF
 	else
-		echo "Shell not supported. Zsh and bash are available"
+		echo "Shell not supported. Zsh and bash are available" >&2
 		exit 50
 	fi
 elif [ "$action" == "version" ]; then
+	#
+	# Version
+	#
 	echo "$0 v$VERSION"
 elif [ "$action" == "logout" ]; then
+	# 
 	# Perform logout 
+	#
 	oc logout
 	unset KUBECONFIG
 elif [ "$action" == "list" ]; then
+	#
 	# Authenticate the user using profiles defined in yaml file.
+	#
 	getprofilelist_action $koch_config
 elif [ "$action" == "define" ]; then
+	# 
 	# Authenticate the user using profiles defined in yaml file.
+	#
 	PARSED_ARGUMENTS=$(getopt -n $0 -o poasci:d: --long profile:,oauth:,api:,secrethandler:,secretname:,context:,insecure: -- "$@")
 	VALID_ARGUMENTS=$?
 	# echo $VALID_ARGUMENTS
@@ -368,7 +441,7 @@ elif [ "$action" == "define" ]; then
 		      -c | --context)          context="$2"   ; shift 2 ;;
 		      -i | --insecure)         insecure="true"   ; shift 2 ;;
 		      --) shift; break ;;
-		      *) echo "Unexpected option: $1 - this should not happen."
+		      *) echo "Unexpected option: $1 - this should not happen." >&2
 				     usage ;;
 	 esac
 	done

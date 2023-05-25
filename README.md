@@ -39,19 +39,19 @@ Authentication can be achieved through:
 
 ### Download and install
 This script downloads and install the koch script in the bin directory of the user. You can also install system-wide.
-```
+```bash
 curl -o koch https://raw.githubusercontent.com/faan11/koch/1.1.0/koch
 mv koch $HOME/.local/bin/
 chmod +x $HOME/.local/bin/koch
 ```
 ## Usage
 You can get the help command by simply typing
-```
+```bash
 koch
 ```
 
 The following command defines a cluster configuration.
-```
+```bash
 koch define <context-name> --auth="$AUTH_SERVER" --api="$API_SERVER" --context="$KUBECTL_CONTEXT" --secrethandler="$SECRETHANDLER" --secretname="$SECRETNAME" --insecure="true"
 ```
 where context-name represents the cluster configuration name.  
@@ -59,11 +59,11 @@ where context-name represents the cluster configuration name.
 **$API\_SERVER** is the scheme and the host of api server used to perform login (for instance, https://apiserver:6443 ).
 
 Once the configuration is defined, the user can perform authentication by using the context name.
-```
+```bash
 koch login <context-name>
 ```
 This command requests the temporary authentication token and perform authentication using oc login.
-```
+```bash
 koch logout
 ```
 Koch logout performs the logout operation.
@@ -71,9 +71,9 @@ Koch logout performs the logout operation.
 ### Autocompletion
 Koch supports only bash and zsh shell autocompletion.
 The autocompletion is limited to the login command. It is used to filter koch profiles.
-```
-eval "$(koch completion zsh)"
-eval "$(koch completion bash)"
+```bash
+eval "$(koch completion zsh)" # inside your .zshrc file
+eval "$(koch completion bash)" # inside your .bashrc file
 ```
 ## How to contribute
 Feel free to open an issue in the repo and proposes new ideas.

@@ -59,6 +59,17 @@ where context-name represents the cluster configuration name.
 **$API\_SERVER** is the scheme and the host of api server used to perform login (for instance, https://apiserver:6443 ).
 
 Once the configuration is defined, the user can perform authentication by using the context name.
+
+Authentication can be done in two ways:
+- private authentication (recommended): This type of authentication performs login and opens a new shell. The authentication will be available only to the new shell. Once it is closed, the context is removed and the terminal can view the system kubectl context.  
+This procedure is advised due to the following advantages:  
+- **Isolation**: The system can't access the token by default.
+- **Temporary**: Once the shell is closed, Koch releases the authentication token.
+
+```bash koch psh <context-name> ```
+
+- system authentication:
+
 ```bash
 koch login <context-name>
 ```

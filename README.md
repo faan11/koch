@@ -65,7 +65,10 @@ Authentication can be done in two ways:
     - **Isolation**: The system can't access the token by default.
     - **Temporary**: Once the shell is closed, Koch releases the authentication token.
 
-   A private shell can be created with the following command: ```bash koch psh <context-name> ```
+   A private shell can be created with the following command: 
+   ```bash 
+   koch psh <context-name> 
+   ```
 
 - **user authentication**: User authentication saves the context in the default **KUBECONFIG** environment file. The following command can request the temporary authentication token and perform authentication using oc login.
 ```bash 

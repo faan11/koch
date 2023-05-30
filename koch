@@ -62,7 +62,7 @@ function loginwtoken {
 
 function getprofilelist_action {
 	# $1 -> file name
- 	profiles=$(yq -r '.profiles | keys' $1)	
+ 	profiles=$(yq -r '.profiles | keys | .[]' $1)	
 	echo "$profiles"
 }
 

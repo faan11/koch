@@ -1,0 +1,11 @@
+#!/bin/sh
+
+#
+# Koch utility for fzf
+#
+choice=$(koch list | fzf)
+# Avoid executing due to killing program.
+if [ "$choice" != "" ]; then
+    echo "Logging in $choice"
+    koch psh "$choice"
+fi

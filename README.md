@@ -61,24 +61,23 @@ where context-name represents the cluster configuration name.
 Once the configuration is defined, the user can perform authentication by using the context name.
 
 Authentication can be done in two ways:
-- private authentication (recommended): This type of authentication performs login and opens a new shell. The authentication will be available only to the new shell. Once it is closed, the context is removed and the terminal can view the system kubectl context.  
-This procedure is advised due to the following advantages:  
-- **Isolation**: The system can't access the token by default.
-- **Temporary**: Once the shell is closed, Koch releases the authentication token.
+- **private authentication (recommended)**: This type of authentication performs login and opens a new shell. The authentication will be available only to the new shell. Once it is closed, the context is removed and the terminal can view the system kubectl context. This procedure is advised due to the following advantages:  
+    - **Isolation**: The system can't access the token by default.
+    - **Temporary**: Once the shell is closed, Koch releases the authentication token.
 
-```bash koch psh <context-name> ```
+   A private shell can be created with the following command: 
+   ```bash 
+   koch psh <context-name> 
+   ```
 
-- system authentication:
-
-```bash
-koch login <context-name>
+- **user authentication**: User authentication saves the context in the default **KUBECONFIG** environment file. The following command can request the temporary authentication token and perform authentication using oc login.
+```bash 
+koch login <context-name> 
 ```
-This command requests the temporary authentication token and perform authentication using oc login.
+Koch logout performs the logout operation.
 ```bash
 koch logout
 ```
-Koch logout performs the logout operation.
-
 ### Autocompletion
 Koch supports only bash and zsh shell autocompletion.
 The autocompletion is limited to the login command. It is used to filter koch profiles.

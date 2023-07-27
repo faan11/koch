@@ -52,7 +52,7 @@ koch
 
 The following command defines a cluster configuration.
 ```bash
-koch define <context-name> --auth="$AUTH_SERVER" --api="$API_SERVER" --context="$KUBECTL_CONTEXT" --secrethandler="$SECRETHANDLER" --secretname="$SECRETNAME" --insecure="true"
+koch define <context-name> --oauth="$AUTH_SERVER" --api="$API_SERVER" --context="$KUBECTL_CONTEXT" --secrethandler="$SECRETHANDLER" --secretname="$SECRETNAME" --insecure="true"
 ```
 where context-name represents the cluster configuration name.  
 **$AUTH\_SERVER** represents the scheme and the host used to point out the authentication server ( for instance https://myauthservice.com ).  

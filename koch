@@ -146,8 +146,8 @@ function login_action {
 			echo "log: $item" >&2
 			exit 11
 		fi
-		user=$(echo $item | jq -r '.login.username')
-		pass=$(echo $item | jq -r '.login.password')
+		user=$(printf "%s" "$item" | jq -r '.login.username')
+		pass=$(printf "%s" "$item" | jq -r '.login.password')
 	else
 		echo "Secret method $secrethandler not found"
 		exit 12
